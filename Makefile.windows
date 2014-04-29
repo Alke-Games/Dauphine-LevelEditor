@@ -1,0 +1,44 @@
+# Folders containing files
+INCLUDES	:= include
+SOURCES		:= src
+RESOURCES	:= res
+BUILD		:= build
+SDL_MINGW_ROOT = /usr/i686-w64-mingw32
+
+# Compiler
+export LD := /usr/bin/i686-w64-mingw32-g++
+# Compiler flags
+CPPFLAGS= `$(SDL_MINGW_ROOT)/bin/sdl2-config --cflags` -O2 -g -W -Wall -pedantic -ansi -static-libgcc -static-libstdc++ -std=c++0x -Wextra -Wshadow
+# Linking flags
+LDFLAGS = `$(SDL_MINGW_ROOT)/bin/sdl2-config --libs` -lSDL2_image -lSDL2_mixer -lSDL2_gfx -lm -lSDL2_ttf -llua52
+
+# Target program name
+TARGET := DauphineLevelEditor
+# Automatically build a list of object files
+CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+# Object files
+export OFILES := $(addprefix $(BUILD)/,$(CPPFILES:.cpp=.o))
+# 
+CPPFILES := $(addprefix $(SOURCES)/,$(CPPFILES))
+# Build a list of include paths
+export INCLUDE := $(foreach dir,$(INCLUDES), -I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD)
+
+$(BUILD)/%.o:$(SOURCES)/%.cpp
+	@mkdir -p $(BUILD)
+	@echo Building $^ ...
+	@$(LD) $(CPPFLAGS) -c $^ -o $@ $(INCLUDE)
+
+main:$(OFILES)
+	@unzip -j windows.zip
+	@mkdir -p $(BUILD)
+	@echo Linking necessary libraries...
+	@$(LD) $(OFILES) $(CPPFLAGS) $(LDFLAGS) -o $(TARGET).exe
+	@echo Built executable "$(TARGET).exe"
+
+clean:
+	@echo Cleaning...
+	@rm -rf $(BUILD)/
+	@rm -f $(TARGET)
+	@rm -f $(TARGET).exe
+	@rm -f *.dll
+	@rm -f LICENSES.txt

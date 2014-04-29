@@ -1,0 +1,30 @@
+# The binary file (executable)
+DauphineLevelEditor
+DauphineLevelEditor.exe
+
+# The build folder
+build/
+
+# The windows.zip files
+*.dll
+LICENSES.txt
+
+# The doxygen gh-pages folder
+html/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Temporary files, just in case
+*~
