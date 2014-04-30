@@ -70,7 +70,8 @@ void Window::create(const unsigned int width_, const unsigned int height_){
 			SDL_bool linearFilter = SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 			if(linearFilter){
 				Logger::log("Linear texture filtering enabled!");
-				rescale(Configuration::getLogicalRenderSize());
+				/// @todo Fix mouse x,y with rescale.
+				//rescale(Configuration::getLogicalRenderSize());
 			}
 			else{
 				Logger::warning("Linear texture filtering disabled!");

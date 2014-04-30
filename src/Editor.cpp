@@ -290,6 +290,10 @@ void Editor::showType(){
 	// };    
 }
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 void Editor::putTile(){
 	//Mouse offsets
 	int x = 0, y = 0;
@@ -297,21 +301,22 @@ void Editor::putTile(){
 	//Get mouse offsets
 	SDL_GetMouseState(&x, &y);
 
-	Logger::verbose("mousestate: " + std::to_string(x) + ", " + std::to_string(y));
+	//Logger::verbose("mousestate: " + std::to_string(x) + ", " + std::to_string(y));
 	
 	//Adjust to camerathis->
 	x += this->camera.x;
 	y += this->camera.y;
 
-	Logger::verbose("mousestate+camera: " + std::to_string(x) + ", " + std::to_string(y));
+	Logger::verbose("mouse: " + std::to_string(x) + ", " + std::to_string(y));
 
 	//Go through tiles
-	for(int t = 0; t < TileCode::TOTAL; t++){
+	for(int t = 0; t < TOTAL_TILES; t++){
 		//Get tile's collision box
 		SDL_Rect box = this->tiles[t]->getRectangle();
 		
 		//If the mouse is inside the tile
 		if( (x > box.x) && (x < box.x + box.w) && (y > box.y) && (y < box.y + box.h) ){
+			cout << "box[" << t << "] = {" << box.x << " " << box.y << " " << box.w << " " << box.h << "}" << endl;
 			Logger::verbose("old type: " + std::to_string(this->tiles[t]->getType()));
 			//Get rid of old tile
 			delete this->tiles[t];
