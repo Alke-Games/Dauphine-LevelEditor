@@ -13,6 +13,9 @@ class Editor {
 		void update();
 		void render();
 
+		static string mapName;
+		static int numberOfTiles;
+
 	private:
 		void clipTiles();
 		bool setTiles();
@@ -20,10 +23,11 @@ class Editor {
 		void saveTiles();
 		void showType();
 		void putTile();
+		void countTiles();
 
 		SDL_Rect clips[TileCode::TOTAL];
 		Sprite* tileSheet;
-		Tile* tiles[TOTAL_TILES];
+		Tile** tiles;
 		int currentType;
 		SDL_Rect camera;
 

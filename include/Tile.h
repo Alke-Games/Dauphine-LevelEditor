@@ -9,7 +9,6 @@ const int LEVEL_HEIGHT = 960;
 //Tile constants
 const int TILE_WIDTH = 48;
 const int TILE_HEIGHT = 48;
-const int TOTAL_TILES = 192;
 const int TILE_PER_ROW_IMAGE = 5;
 //const int TILE_SPRITES = 10; --> TileCode::Total
 
