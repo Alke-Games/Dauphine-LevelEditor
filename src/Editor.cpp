@@ -3,13 +3,15 @@
 #include "Configuration.h"
 #include "Logger.h"
 #include <fstream>
+#include <cstdlib>
+#include <ctime>
 
 string Editor::mapName = "res/maps/";
 int Editor::numberOfTiles = 0;
 
 Editor::Editor() :
 	tileSheet(nullptr),
-	currentType(TileCode::BLACK),
+	currentType(TileCode::WHITE),
 	camera{(int)0, (int)0, (int)Configuration::getScreenWidth(), (int)Configuration::getScreenHeight()}
 {
 	this->tileSheet = new Sprite("res/tilesheet.png");
@@ -21,11 +23,13 @@ Editor::Editor() :
 
 	this->tiles = new Tile*[Editor::numberOfTiles];
 	if(this->tileSheet != nullptr){
+
 		clipTiles();
-		if(!setTiles()){
-			Logger::warning("Could not set tiles.");
+		bool tilesSet = setTiles();
+		if(!tilesSet){
+			Logger::error("Could not set tiles.");
 		}
-		showType();
+
 	}
 	else{
 		Logger::warning("TileSheet image could not be loaded in Editor!");
@@ -51,44 +55,45 @@ void Editor::update(){
 	InputHandler* inputHandler = InputHandler::getInstance();
 	array<bool, GameKeys::MAX> keyStates = inputHandler->getKeyStates();
 
+	// Put the current tile on cursor position.
 	if(keyStates[GameKeys::LMB_DOWN]){
 		putTile();
 	}
 
+	// Scroll down through tiles.
 	if(keyStates[GameKeys::DOWN]){
-		//Scroll through tiles
 		this->currentType++;
 
 		if(this->currentType > TileCode::GRAY){
 			this->currentType = TileCode::BLACK;
 		}
-
-		// //Show the current tile type
-		showType();
 	}
 	
-
+	// Scroll up through tiles.
 	else if(keyStates[GameKeys::UP]){
-		//Scroll through tiles
 		this->currentType--;
 		
 		if(this->currentType < TileCode::BLACK){
 			this->currentType = TileCode::GRAY;
 		}
-		
-		//Show the current tile type
-		showType();
 	}
 
 }
 
 void Editor::render(){
+	// Move the camera.
 	setCamera();
+
+	// Render all the tiles.
 	for(int i = 0; i < Editor::numberOfTiles; i++ ){
-		const int dx = tiles[i]->getRectangle().x - camera.x;
-		const int dy = tiles[i]->getRectangle().y - camera.y;
-		this->tileSheet->render(dx, dy, &clips[tiles[i]->getType()]);
+		if(checkCollision(camera, tiles[i]->getRectangle())){
+			const int dx = tiles[i]->getRectangle().x - camera.x;
+			const int dy = tiles[i]->getRectangle().y - camera.y;
+			this->tileSheet->render(dx, dy, &clips[tiles[i]->getType()]);
+		}
 	}
+
+	renderCurrentTileOnCursor();
 }
 
 
@@ -126,19 +131,21 @@ void Editor::clipTiles(){
 }
 
 bool Editor::setTiles(){
-	//The tile offsets
+	// The tile offsets.
 	int x = 0, y = 0;
 	
-	//Open the map
-	// std::ifstream map( "res/lazy.map" );
+	// Open the map.
 	std::ifstream map(Editor::mapName);
 	
-	//If the map couldn't be loaded
+	// If the map does not exist, create one.
 	if(map == nullptr){
-		//Initialize the tiles
+		srand(time(nullptr));
+
+		// Initialize the tiles.
 		for(int t = 0; t < Editor::numberOfTiles; t++){
 			//Put a floor tile
-			this->tiles[ t ] = new Tile(x, y, t % ( TileCode::RED + 1 ));
+			int randomTileType = rand() % (TileCode::TOTAL);
+			this->tiles[ t ] = new Tile(x, y, randomTileType);
 			
 			//Move to next tile spot
 			x += TILE_WIDTH;
@@ -155,31 +162,32 @@ bool Editor::setTiles(){
 	}
 	else{
 
+		// Discard the number of tiles, on the beggining of the file.
 		int dummy = 0;
 		map >> dummy;
 
 		//Initialize the tiles
 		for(int t = 0; t < Editor::numberOfTiles;t++){
-			//Determines what kind of tile will be made
+
+			// Determines what kind of tile will be made.
 			int tileType = -1;
 	
 			//Read tile from map file
 			map >> tileType;
 		
 			//If there was a problem in reading the map
-			if(map.fail() == true){
+			if(map.fail()){
 				//Stop loading map
 				map.close();
 				return false;
 			}
 		
-			//If the number is a valid tile number
-			if(( tileType >= 0 ) && ( tileType < TileCode::TOTAL )){
+			// If the number is a valid tile type.
+			if( (tileType >= 0) && (tileType < TileCode::TOTAL) ){
 				this->tiles[t] = new Tile(x, y, tileType);    
 			}
-			//If we don't recognize the tile type
 			else{
-				//Stop loading map
+				Logger::warning("Tile type not recognized on loading.");
 				map.close();
 				return false;
 			}
@@ -211,25 +219,27 @@ void Editor::setCamera(){
 	
 	//Get mouse offsets
 	SDL_GetMouseState( &x, &y );
+
+	const int speed = 5;
 	
 	//Move camera to the left if needed
 	if( x < TILE_WIDTH ){
-		this->camera.x -= 20;
+		this->camera.x -= speed;
 	}
 	
 	//Move camera to the right if needed
 	if( x > (int)Configuration::getScreenWidth() - TILE_WIDTH ){
-		this->camera.x += 20;
+		this->camera.x += speed;
 	}
 	
 	//Move camera up if needed
 	if( y < TILE_WIDTH ){
-		this->camera.y -= 20;
+		this->camera.y -= speed;
 	}
 	
 	//Move camera down if needed
 	if( y > (int)Configuration::getScreenHeight() - TILE_WIDTH ){
-		this->camera.y += 20;
+		this->camera.y += speed;
 	}
 
 	//Keep the camera in bounds.
@@ -251,12 +261,12 @@ void Editor::saveTiles(){
 	Logger::log("=== Saving tiles...");
 
 	//Open the map
-	//std::ofstream map("res/lazy.map");
 	std::ofstream map(Editor::mapName);
 	
 	//Go through the tiles
 	map << Editor::numberOfTiles << std::endl;
 	for(int i = 0; i < Editor::numberOfTiles; i++){
+
 		//Write tile type to file
 		map << this->tiles[i]->getType() << " ";
 	}
@@ -266,15 +276,6 @@ void Editor::saveTiles(){
 	Logger::log("=== Done saving tiles");
 }
 
-void Editor::showType(){
-	Logger::log("!!! CURRENT TILE TYPE: " + std::to_string(this->currentType));
-	// switch(this->currentType){
-	// 	case TileCode::BLACK :
-	// 		this->window->setTitle( "Level Designer. Current Tile: BLACK");
-	// 		break;
-	   
-}
-
 void Editor::putTile(){
 	//Mouse offsets
 	int x = 0, y = 0;
@@ -282,13 +283,39 @@ void Editor::putTile(){
 	//Get mouse offsets
 	SDL_GetMouseState(&x, &y);
 
-	//Logger::verbose("mousestate: " + std::to_string(x) + ", " + std::to_string(y));
-	
-	//Adjust to camerathis->
+	// Adjust to camera position.
 	x += this->camera.x;
 	y += this->camera.y;
 
-	Logger::verbose("mouse: " + std::to_string(x) + ", " + std::to_string(y));
+	//Go through tiles
+	for(int t = 0; t < Editor::numberOfTiles; t++){
+
+		//Get tile's collision box
+		SDL_Rect box = this->tiles[t]->getRectangle();
+		
+		//If the mouse is inside the tile
+		if( (x > box.x) && (x < box.x + box.w) && (y > box.y) && (y < box.y + box.h) ){
+			
+			//Get rid of old tile
+			delete this->tiles[t];
+			
+			//Replace it with new one
+			this->tiles[t] = new Tile(box.x, box.y, this->currentType);
+		}
+	}
+}
+
+void Editor::renderCurrentTileOnCursor(){
+	//Mouse offsets
+	int x = 0, y = 0;
+	
+	//Get mouse offsets
+	SDL_GetMouseState(&x, &y);
+
+	
+	// Adjust to camera position.
+	x += this->camera.x;
+	y += this->camera.y;
 
 	//Go through tiles
 	for(int t = 0; t < Editor::numberOfTiles; t++){
@@ -297,15 +324,9 @@ void Editor::putTile(){
 		
 		//If the mouse is inside the tile
 		if( (x > box.x) && (x < box.x + box.w) && (y > box.y) && (y < box.y + box.h) ){
-			//cout << "box[" << t << "] = {" << box.x << " " << box.y << " " << box.w << " " << box.h << "}" << endl;
-			Logger::verbose("old type: " + std::to_string(this->tiles[t]->getType()));
-			//Get rid of old tile
-			delete this->tiles[t];
-			
-			//Replace it with new one
-			this->tiles[t] = new Tile(box.x, box.y, this->currentType);
-
-			Logger::verbose("new type: " + std::to_string(this->tiles[t]->getType()));
+			const int dx = tiles[t]->getRectangle().x - camera.x;
+			const int dy = tiles[t]->getRectangle().y - camera.y;
+			this->tileSheet->render(dx, dy, &clips[this->currentType]);
 		}
 	}
 }
@@ -316,4 +337,41 @@ void Editor::countTiles(){
 	map >> numberOfTilesRead;
 	Editor::numberOfTiles = numberOfTilesRead;
 	map.close();
+}
+
+bool Editor::checkCollision( SDL_Rect &A, SDL_Rect &B ){
+    //The sides of the rectangles
+    int leftA, leftB;
+    int rightA, rightB;
+    int topA, topB;
+    int bottomA, bottomB;
+
+    //Calculate the sides of rect A
+    leftA = A.x;
+    rightA = A.x + A.w;
+    topA = A.y;
+    bottomA = A.y + A.h;
+        
+    //Calculate the sides of rect B
+    leftB = B.x;
+    rightB = B.x + B.w;
+    topB = B.y;
+    bottomB = B.y + B.h;
+            
+    //If any of the sides from A are outside of B
+    if( bottomA <= topB ){
+        return false;
+    }
+    if( topA >= bottomB ){
+        return false;
+    }
+    if( rightA <= leftB ){
+        return false;
+    }
+    if( leftA >= rightB ){
+        return false;
+    }
+    
+    //If none of the sides from A are outside B
+    return true;
 }

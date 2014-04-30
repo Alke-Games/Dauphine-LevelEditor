@@ -33,12 +33,10 @@ class Tile {
 
 		Tile(int x_, int y_, int tileType_);
 		~Tile();
-		// void render(SDL_Rect& clipCamera, SDL_Rect clips[TileCode::TOTAL]);
 		SDL_Rect& getRectangle();
 		int getType();
 
 	private:
-		// bool checkCollision( SDL_Rect &A, SDL_Rect &B );
 		int type;
 		SDL_Rect rectangle;
 

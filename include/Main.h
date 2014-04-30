@@ -4,6 +4,7 @@
 #define TAB "\t"
 
 void help();
+bool handleArguments(int& argc, char**& argv);
 int main(int argc, char** argv);
 
 #endif // INCLUDE_MAIN_H

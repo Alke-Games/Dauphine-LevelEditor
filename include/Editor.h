@@ -21,9 +21,10 @@ class Editor {
 		bool setTiles();
 		void setCamera();
 		void saveTiles();
-		void showType();
 		void putTile();
 		void countTiles();
+		bool checkCollision(SDL_Rect &A, SDL_Rect &B);
+		void renderCurrentTileOnCursor();
 
 		SDL_Rect clips[TileCode::TOTAL];
 		Sprite* tileSheet;
