@@ -4,6 +4,9 @@
 #include "SDLWrapper.h"
 #include "Sprite.h"
 
+const int LEVEL_WIDTH = 1280;
+const int LEVEL_HEIGHT = 960;
+
 //Tile constants
 const int TILE_WIDTH = 48;
 const int TILE_HEIGHT = 48;
@@ -32,13 +35,12 @@ class Tile {
 
 		Tile(int x_, int y_, int tileType_);
 		~Tile();
-		void render(SDL_Rect& clipCamera, SDL_Rect clips[TileCode::TOTAL]);
+		// void render(SDL_Rect& clipCamera, SDL_Rect clips[TileCode::TOTAL]);
 		SDL_Rect& getRectangle();
 		int getType();
-		static Sprite* tileSheet;
 
 	private:
-		bool checkCollision( SDL_Rect &A, SDL_Rect &B );
+		// bool checkCollision( SDL_Rect &A, SDL_Rect &B );
 		int type;
 		SDL_Rect rectangle;
 

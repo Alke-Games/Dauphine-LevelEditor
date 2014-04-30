@@ -6,14 +6,9 @@
 #include "Tile.h"
 #include "Configuration.h"
 
-
-const int LEVEL_WIDTH = 1280;
-const int LEVEL_HEIGHT = 960;
-
 /**
 * Main structure class for the game.
 * Contains all the necessary functionalities to loop and update the game.
-* 	Is the state machine (controls current state), contains all the different possible states.
 */
 class Game {
 
@@ -39,13 +34,6 @@ class Game {
 		*/
 		void runGame();
 
-		void clipTiles(SDL_Rect clips[TileCode::TOTAL]);
-		bool setTiles(Tile** tile);
-		void setCamera(SDL_Rect& camera);
-		void saveTiles(Tile** tiles);
-		void showType(int tileType_);
-		void putTile(Tile** tiles, int tileType, SDL_Rect& camera);
-		
 	private:
 		Window *window; /**< The game Window. */
 		bool isRunning; /**< Whether the game is currently running/looping or not. */		

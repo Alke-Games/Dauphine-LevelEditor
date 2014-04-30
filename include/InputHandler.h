@@ -2,6 +2,10 @@
 #define INCLUDE_INPUTHANDLER_H
 
 #include "SDLWrapper.h"
+#include "InputKeys.h"
+
+#include <array>
+using std::array;
 
 /**
 * Handles player input.
@@ -26,20 +30,17 @@ class InputHandler {
 		* Handles the input.
 		* Detects the pending events, and handles them appropriately.
 		*/
-		void handleInput();
+		bool handleInput();
+
+		/**
+		* @return The keyStates attribute.
+		*/
+		array<bool, GameKeys::MAX> getKeyStates();
 
 		/**
 		* @return If a quit signal was recieved or not.
 		*/
 		bool signalQuit();
-
-		bool getLmb();
-		bool getScrollUp();
-		bool getScrollDown();
-
-		void setLmb(bool lmb_);
-		void setScrollUp(bool scrollUp_);
-		void setScrollDown(bool scrollDown_);
 
 	private:
 		/**
@@ -48,13 +49,12 @@ class InputHandler {
 		*/
 		InputHandler();
 
-		static InputHandler* instance; /**< The InputHandler instance (Singleton). */
+		static InputHandler* instance;
 
+		array<bool, GameKeys::MAX> keyStates; /**< Boolean array that controls which keys are
+			pressed or not. */
 		SDL_Event eventHandler; /**< SDL internal event handler. */
 		bool quit; /**< If the quit signal was recieved or not. */
-		bool lmb;
-		bool scrollUp;
-		bool scrollDown;
 
 };
 
