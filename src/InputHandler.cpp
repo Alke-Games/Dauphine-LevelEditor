@@ -1,5 +1,4 @@
 #include "InputHandler.h"
-#include "Logger.h"
 
 
 InputHandler* InputHandler::instance = nullptr;

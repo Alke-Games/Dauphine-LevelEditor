@@ -2,7 +2,6 @@
 #define INCLUDE_TILE_H
 
 #include "SDLWrapper.h"
-#include "Sprite.h"
 
 const int LEVEL_WIDTH = 1280;
 const int LEVEL_HEIGHT = 960;

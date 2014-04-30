@@ -3,8 +3,6 @@
 
 #include "SDLWrapper.h"
 #include "Window.h"
-#include "Tile.h"
-#include "Configuration.h"
 
 /**
 * Main structure class for the game.

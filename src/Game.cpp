@@ -1,9 +1,9 @@
 #include "Game.h"
 #include "InputHandler.h"
 #include "FPSWrapper.h"
-#include "Logger.h"
-#include "Sprite.h"
 #include "Editor.h"
+#include "Logger.h"
+
 
 Game::Game(Window* window_) :
 	window(window_),
