@@ -5,13 +5,16 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 string Editor::mapName = "res/maps/";
 int Editor::numberOfTiles = 0;
+int Editor::LEVEL_WIDTH = 0;
+int Editor::LEVEL_HEIGHT = 0;
 
 Editor::Editor() :
 	tileSheet(nullptr),
-	currentType(TileCode::WHITE),
+	currentType(TileCode::TOTAL-1),
 	camera{(int)0, (int)0, (int)Configuration::getScreenWidth(), (int)Configuration::getScreenHeight()}
 {
 	this->tileSheet = new Sprite("res/tilesheet.png");
@@ -64,8 +67,8 @@ void Editor::update(){
 	if(keyStates[GameKeys::DOWN]){
 		this->currentType++;
 
-		if(this->currentType > TileCode::GRAY){
-			this->currentType = TileCode::BLACK;
+		if(this->currentType > TileCode::TOTAL-1){
+			this->currentType = 0;
 		}
 	}
 	
@@ -73,8 +76,8 @@ void Editor::update(){
 	else if(keyStates[GameKeys::UP]){
 		this->currentType--;
 		
-		if(this->currentType < TileCode::BLACK){
-			this->currentType = TileCode::GRAY;
+		if(this->currentType < 0){
+			this->currentType = TileCode::TOTAL-1;
 		}
 	}
 
@@ -114,16 +117,16 @@ void Editor::clipTiles(){
 	int y = 0;
 	for(int i = 0; i < TileCode::TOTAL; i++){
 
-		if(i == TILE_PER_ROW_IMAGE){
+		if(i!=0 && i%TILE_PER_ROW_IMAGE == 0){
 			x = 0;
 			y++;
 		}
 
-		clips[i].x = TILE_WIDTH * x;
-		clips[i].y = TILE_HEIGHT * y;
+		clips[i].x = TILE_SIZE * x;
+		clips[i].y = TILE_SIZE * y;
 
-		clips[i].w = TILE_WIDTH;
-		clips[i].h = TILE_HEIGHT;
+		clips[i].w = TILE_SIZE;
+		clips[i].h = TILE_SIZE;
 
 		x++;
 
@@ -148,7 +151,7 @@ bool Editor::setTiles(){
 			this->tiles[ t ] = new Tile(x, y, randomTileType);
 			
 			//Move to next tile spot
-			x += TILE_WIDTH;
+			x += TILE_SIZE;
 		
 			//If we've gone too far
 			if(x >= LEVEL_WIDTH){
@@ -156,15 +159,16 @@ bool Editor::setTiles(){
 				x = 0;
 			
 				//Move to the next row
-				y += TILE_HEIGHT;    
+				y += TILE_SIZE;    
 			}
 		}
 	}
 	else{
 
-		// Discard the number of tiles, on the beggining of the file.
-		int dummy = 0;
-		map >> dummy;
+		// Discard the width/height, on the beggining of the file.
+		int dummywidth = 0;
+		int dummyheight = 0;
+		map >> dummywidth >> dummyheight;
 
 		//Initialize the tiles
 		for(int t = 0; t < Editor::numberOfTiles;t++){
@@ -193,7 +197,7 @@ bool Editor::setTiles(){
 			}
 		
 			//Move to next tile spot
-			x += TILE_WIDTH;
+			x += TILE_SIZE;
 		
 			//If we've gone too far
 			if( x >= LEVEL_WIDTH ){
@@ -201,7 +205,7 @@ bool Editor::setTiles(){
 				x = 0;
 			
 				//Move to the next row
-				y += TILE_HEIGHT;    
+				y += TILE_SIZE;    
 			}
 		}
 	
@@ -223,22 +227,22 @@ void Editor::setCamera(){
 	const int speed = 5;
 	
 	//Move camera to the left if needed
-	if( x < TILE_WIDTH ){
+	if( x < TILE_SIZE ){
 		this->camera.x -= speed;
 	}
 	
 	//Move camera to the right if needed
-	if( x > (int)Configuration::getScreenWidth() - TILE_WIDTH ){
+	if( x > (int)Configuration::getScreenWidth() - TILE_SIZE ){
 		this->camera.x += speed;
 	}
 	
 	//Move camera up if needed
-	if( y < TILE_WIDTH ){
+	if( y < TILE_SIZE ){
 		this->camera.y -= speed;
 	}
 	
 	//Move camera down if needed
-	if( y > (int)Configuration::getScreenHeight() - TILE_WIDTH ){
+	if( y > (int)Configuration::getScreenHeight() - TILE_SIZE ){
 		this->camera.y += speed;
 	}
 
@@ -249,11 +253,11 @@ void Editor::setCamera(){
 	if( this->camera.y < 0 ){
 		this->camera.y = 0;    
 	}
-	if( this->camera.x > LEVEL_WIDTH - this->camera.w ){
-		this->camera.x = LEVEL_WIDTH - this->camera.w;    
+	if( this->camera.x > Editor::LEVEL_WIDTH - this->camera.w ){
+		this->camera.x = Editor::LEVEL_WIDTH - this->camera.w;    
 	}
-	if( this->camera.y > LEVEL_HEIGHT - this->camera.h ){
-		this->camera.y = LEVEL_HEIGHT - this->camera.h;    
+	if( this->camera.y > Editor::LEVEL_HEIGHT - this->camera.h ){
+		this->camera.y = Editor::LEVEL_HEIGHT - this->camera.h;    
 	} 
 }
 
@@ -264,7 +268,8 @@ void Editor::saveTiles(){
 	std::ofstream map(Editor::mapName);
 	
 	//Go through the tiles
-	map << Editor::numberOfTiles << std::endl;
+	map << Editor::LEVEL_WIDTH << std::endl;
+	map << Editor::LEVEL_HEIGHT << std::endl;
 	for(int i = 0; i < Editor::numberOfTiles; i++){
 
 		//Write tile type to file
@@ -333,9 +338,14 @@ void Editor::renderCurrentTileOnCursor(){
 
 void Editor::countTiles(){
 	std::ifstream map(Editor::mapName);
-	int numberOfTilesRead = 0;
-	map >> numberOfTilesRead;
-	Editor::numberOfTiles = numberOfTilesRead;
+	int width = 0;
+	int height = 0;
+	map >> width;
+	map >> height;
+	Editor::LEVEL_WIDTH = width;
+	Editor::LEVEL_HEIGHT = height;
+	Editor::numberOfTiles = (Editor::LEVEL_WIDTH * Editor::LEVEL_HEIGHT) / TILE_SIZE;
+	std::cout << "w: " << Editor::LEVEL_WIDTH << " h: " << Editor::LEVEL_HEIGHT << " n: " << Editor::numberOfTiles << std::endl;
 	map.close();
 }
 

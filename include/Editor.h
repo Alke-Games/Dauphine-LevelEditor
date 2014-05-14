@@ -16,6 +16,9 @@ class Editor {
 		static string mapName;
 		static int numberOfTiles;
 
+		static int LEVEL_WIDTH;
+		static int LEVEL_HEIGHT;
+
 	private:
 		void clipTiles();
 		bool setTiles();

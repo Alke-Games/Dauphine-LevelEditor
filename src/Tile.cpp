@@ -4,7 +4,7 @@
 Tile::Tile(int x_, int y_, int tileType_) :
 	type(tileType_)
 {
-	this->rectangle = {x_, y_, TILE_WIDTH, TILE_HEIGHT};
+	this->rectangle = {x_, y_, TILE_SIZE, TILE_SIZE};
 }
 
 Tile::~Tile(){

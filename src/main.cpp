@@ -61,7 +61,6 @@ bool handleArguments(int& argc, char**& argv){
 	if(argc >= 1 && argc <= 5){
 		int i = 0;
 		while(argv[i] != nullptr){
-			//Logger::log(string(argv[i]));
 			if((argv[i] == string("--help")) || argc == 1){
 				help();
 				return false;
@@ -69,9 +68,11 @@ bool handleArguments(int& argc, char**& argv){
 			else if(argv[i] == string("--verbose")){
 				Logger::isVerbose = true;
 			}
-			else if(argv[i] == string("--new") && (argc == 4 || argc == 5) ){
+			else if(argv[i] == string("--new") && (argc == 5 || argc == 6) ){
 				Editor::mapName.append(argv[i+1]);
-				Editor::numberOfTiles = atoi(argv[i+2]);
+				Editor::LEVEL_WIDTH = atoi(argv[i+2]);
+				Editor::LEVEL_HEIGHT = atoi(argv[i+3]);
+				Editor::numberOfTiles = (Editor::LEVEL_WIDTH * Editor::LEVEL_HEIGHT) / TILE_SIZE;
 				correctArguments = true;
 			}
 			else if(argv[i] == string("--load") && (argc == 3 || argc == 4) ){
